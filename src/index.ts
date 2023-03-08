@@ -3,7 +3,7 @@
     // http://en.wikipedia.org/wiki/METAR
     // http://www.unc.edu/~haines/metar.html
 
-    var re = /(R\d{2})([L|R|C])?(\/)([P|M])?(\d+)(?:([V])([P|M])?(\d+))?([N|U|D])?(FT)?/g;
+    const re = /(R\d{2})([L|R|C])?(\/)([P|M])?(\d+)(?:([V])([P|M])?(\d+))?([N|U|D])?(FT)?/g;
 
     function RVR(rvrString) {
         this.result = {};
@@ -12,7 +12,7 @@
     }
 
     RVR.prototype.parse = function() {
-        var matches;
+        const matches;
 
         while ((matches = re.exec(this.rvrString)) != null) {
             if (matches.index === re.lastIndex) {
@@ -35,14 +35,14 @@
     };
 
     function parseRVR(rvrString) {
-        var m = new RVR(rvrString);
+        const m = new RVR(rvrString);
         m.parse();
         return m.result;
     }
 
-    var TYPES = ["METAR", "SPECI"];
+    const TYPES = ["METAR", "SPECI"];
 
-    var CLOUDS = {
+    const CLOUDS = {
         NCD: "no clouds",
         SKC: "sky clear",
         CLR: "no clouds under 12,000 ft",
@@ -54,7 +54,7 @@
         VV: "vertical visibility",
     };
 
-    var WEATHER = {
+    const WEATHER = {
         // Intensity
         "-": "light intensity",
         "+": "heavy intensity",
@@ -99,7 +99,7 @@
         FC: "funnel cloud",
     };
 
-    var RECENT_WEATHER = {
+    const RECENT_WEATHER = {
         REBLSN: "Moderate/heavy blowing snow (visibility significantly reduced)reduced",
         REDS: "Dust Storm",
         REFC: "Funnel Cloud",
@@ -126,7 +126,7 @@
     };
 
     function parseAbbreviation(s, map) {
-        var abbreviation, meaning, length = 3;
+        const abbreviation, meaning, length = 3;
         if (!s) return;
         while (length && !meaning) {
             abbreviation = s.slice(0, length);
@@ -169,7 +169,7 @@
     };
 
     METAR.prototype.parseType = function() {
-        var token = this.peek();
+        const token = this.peek();
 
         if (TYPES.indexOf(token) !== -1) {
             this.next();
@@ -186,7 +186,7 @@
 
     METAR.prototype.parseDate = function() {
         this.next();
-        var d = new Date();
+        const d = new Date();
         d.setUTCDate(asInt(this.current.slice(0, 2)));
         d.setUTCHours(asInt(this.current.slice(2, 4)));
         d.setUTCMinutes(asInt(this.current.slice(4, 6)));
@@ -203,7 +203,7 @@
             return;
         }
 
-        var token = this.peek();
+        const token = this.peek();
         this.result.correction = false;
 
         if (token.lastIndexOf("CC", 0) == 0) {
@@ -217,7 +217,7 @@
         }
     };
 
-    var variableWind = /^([0-9]{3})V([0-9]{3})$/;
+    const variableWind = /^([0-9]{3})V([0-9]{3})$/;
     METAR.prototype.parseWind = function() {
         this.result.wind = {
             speed: null,
@@ -231,7 +231,7 @@
         }
         this.next();
 
-        var direction = this.current.slice(0, 3);
+        const direction = this.current.slice(0, 3);
         if (direction === "VRB") {
             this.result.wind.direction = "VRB";
             this.result.wind.variation = true;
@@ -239,21 +239,21 @@
             this.result.wind.direction = asInt(direction);
         }
 
-        var gust = this.current.slice(5, 8);
+        const gust = this.current.slice(5, 8);
         if (gust[0] === "G") {
             this.result.wind.gust = asInt(gust.slice(1));
         }
 
         this.result.wind.speed = asInt(this.current.slice(3, 5));
 
-        var unitMatch;
+        const unitMatch;
         if ((unitMatch = this.current.match(/KT|MPS|KPH|SM$/))) {
             this.result.wind.unit = unitMatch[0];
         } else {
             throw new Error("Bad wind unit: " + this.current);
         }
 
-        var varMatch;
+        const varMatch;
         if ((varMatch = this.peek().match(variableWind))) {
             this.next();
             this.result.wind.variation = {
@@ -269,7 +269,7 @@
     };
 
     METAR.prototype.parseVisibility = function() {
-        var re = /^([0-9]+)([A-Z]{1,2})/g;
+        const re = /^([0-9]+)([A-Z]{1,2})/g;
         this.result.visibility = null;
         this.result.visibilityVariation = null;
         this.result.visibilityVariationDirection = null;
@@ -284,7 +284,7 @@
         if (this.peek().match(/^[0-9]+[N|E|S|W|NW|NE|SW|SE]/)) {
             this.next();
 
-            var matches;
+            const matches;
             while ((matches = re.exec(this.current)) != null) {
                 if (matches.index === re.lastIndex) {
                     re.lastIndex++;
@@ -306,7 +306,7 @@
     };
 
     function parseWeatherAbbrv(s, res) {
-        var weather = parseAbbreviation(s, WEATHER);
+        const weather = parseAbbreviation(s, WEATHER);
         if (weather) {
             res = res || [];
             res.push(weather);
@@ -319,7 +319,7 @@
         if (this.result.weather === undefined) this.result.weather = null;
 
         if (this.result.cavok) return;
-        var weather = parseWeatherAbbrv(this.peek());
+        const weather = parseWeatherAbbrv(this.peek());
 
         if (!weather) return;
         if (!this.result.weather) this.result.weather = [];
@@ -332,7 +332,7 @@
     METAR.prototype.parseClouds = function() {
         if (!this.result.clouds) this.result.clouds = null;
         if (this.result.cavok) return;
-        var cloud = parseAbbreviation(this.peek(), CLOUDS);
+        const cloud = parseAbbreviation(this.peek(), CLOUDS);
         if (!cloud) return;
 
         this.next();
@@ -349,15 +349,15 @@
 
     METAR.prototype.parseTempDewpoint = function() {
         this.next();
-        var replaced = this.current.replace(/M/g, "-");
-        var a = replaced.split("/");
+        const replaced = this.current.replace(/M/g, "-");
+        const a = replaced.split("/");
         if (2 !== a.length) return; // expecting XX/XX
         this.result.temperature = asInt(a[0]);
         this.result.dewpoint = asInt(a[1]);
     };
 
     METAR.prototype.parseAltimeter = function() {
-        var temp;
+        const temp;
         this.next();
         if (this.current === undefined || this.current === null) return;
 
@@ -405,7 +405,7 @@
     };
 
     function parseMETAR(metarString) {
-        var m = new METAR(metarString);
+        const m = new METAR(metarString);
         m.parse();
         return m.result;
     }
